@@ -67,7 +67,10 @@
             <option value="selection">Selection Sort</option>
         </select>
         <input type="number" id="arraySize" placeholder="Array Size" min="5" max="100" value="30">
-        <button onclick="generateAndSort()">Generate & Sort</button>
+        <input type="number" id="maxNumber" placeholder="Max Number" min="10" max="10000" value="1000">
+        <button id="startBtn" onclick="generateAndSort()">Generate & Sort</button>
+        <button id="cancelBtn" onclick="cancelSort()" style="background-color: #e74c3c; display: none;">Cancel Sort</button>
+        <div id="timeInfo" style="margin-top: 10px; font-size: 14px;"></div>
     </div>
     <div id="visualization"></div>
 

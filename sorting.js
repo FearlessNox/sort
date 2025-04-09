@@ -1,11 +1,29 @@
 let array = [];
 let visualizationSteps = [];
 let animationSpeed = 50;
+let isSorting = false;
+let startTime = 0;
+
+function updateTimeInfo(status = 'running') {
+    const timeInfo = document.getElementById('timeInfo');
+    const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    timeInfo.textContent = status === 'running' 
+        ? `Time elapsed: ${elapsedTime}s` 
+        : `Sorting ${status}! Total time: ${elapsedTime}s`;
+}
+
+function cancelSort() {
+    isSorting = false;
+    document.getElementById('startBtn').style.display = 'inline-block';
+    document.getElementById('cancelBtn').style.display = 'none';
+    updateTimeInfo('cancelled');
+}
 
 function generateArray(size) {
     array = [];
+    const maxNum = parseInt(document.getElementById('maxNumber').value) || 1000;
     for (let i = 0; i < size; i++) {
-        array.push(Math.floor(Math.random() * 10000) + 1);
+        array.push(Math.floor(Math.random() * maxNum) + 1);
     }
     return array;
 }
@@ -40,10 +58,11 @@ async function bubbleSort(array) {
     const n = array.length;
     const sorted = [];
 
-    for (let i = 0; i < n - 1; i++) {
-        for (let j = 0; j < n - i - 1; j++) {
+    for (let i = 0; i < n - 1 && isSorting; i++) {
+        for (let j = 0; j < n - i - 1 && isSorting; j++) {
             await sleep(animationSpeed);
             updateVisualization(array, [j, j + 1], sorted);
+            updateTimeInfo();
 
             if (array[j] > array[j + 1]) {
                 [array[j], array[j + 1]] = [array[j + 1], array[j]];
@@ -51,39 +70,47 @@ async function bubbleSort(array) {
         }
         sorted.unshift(n - i - 1);
     }
-    sorted.unshift(0);
-    updateVisualization(array, [], sorted);
+    if (isSorting) {
+        sorted.unshift(0);
+        updateVisualization(array, [], sorted);
+    }
 }
 
 async function insertionSort(array) {
     const n = array.length;
     const sorted = [0];
 
-    for (let i = 1; i < n; i++) {
+    for (let i = 1; i < n && isSorting; i++) {
         let key = array[i];
         let j = i - 1;
 
-        while (j >= 0 && array[j] > key) {
+        while (j >= 0 && array[j] > key && isSorting) {
             await sleep(animationSpeed);
             updateVisualization(array, [j, j + 1], sorted);
+            updateTimeInfo();
             array[j + 1] = array[j];
             j--;
         }
         array[j + 1] = key;
         sorted.push(i);
-        updateVisualization(array, [], sorted);
+        if (isSorting) {
+            updateVisualization(array, [], sorted);
+        }
     }
 }
 
 async function merge(array, start, mid, end) {
+    if (!isSorting) return;
+    
     let left = array.slice(start, mid + 1);
     let right = array.slice(mid + 1, end + 1);
     let i = 0, j = 0, k = start;
     const sorted = [];
 
-    while (i < left.length && j < right.length) {
+    while (i < left.length && j < right.length && isSorting) {
         await sleep(animationSpeed);
         updateVisualization(array, [start + i, mid + 1 + j], sorted);
+        updateTimeInfo();
 
         if (left[i] <= right[j]) {
             array[k] = left[i];
@@ -111,7 +138,7 @@ async function merge(array, start, mid, end) {
 }
 
 async function mergeSort(array, start = 0, end = array.length - 1) {
-    if (start < end) {
+    if (start < end && isSorting) {
         const mid = Math.floor((start + end) / 2);
         await mergeSort(array, start, mid);
         await mergeSort(array, mid + 1, end);
@@ -120,12 +147,15 @@ async function mergeSort(array, start = 0, end = array.length - 1) {
 }
 
 async function partition(array, low, high) {
+    if (!isSorting) return low;
+    
     const pivot = array[high];
     let i = low - 1;
 
-    for (let j = low; j < high; j++) {
+    for (let j = low; j < high && isSorting; j++) {
         await sleep(animationSpeed);
         updateVisualization(array, [j, high]);
+        updateTimeInfo();
 
         if (array[j] < pivot) {
             i++;
@@ -138,7 +168,7 @@ async function partition(array, low, high) {
 }
 
 async function quickSort(array, low = 0, high = array.length - 1) {
-    if (low < high) {
+    if (low < high && isSorting) {
         const pi = await partition(array, low, high);
         await quickSort(array, low, pi - 1);
         await quickSort(array, pi + 1, high);
@@ -149,12 +179,13 @@ async function selectionSort(array) {
     const n = array.length;
     const sorted = [];
 
-    for (let i = 0; i < n - 1; i++) {
+    for (let i = 0; i < n - 1 && isSorting; i++) {
         let minIdx = i;
 
-        for (let j = i + 1; j < n; j++) {
+        for (let j = i + 1; j < n && isSorting; j++) {
             await sleep(animationSpeed);
             updateVisualization(array, [minIdx, j], sorted);
+            updateTimeInfo();
 
             if (array[j] < array[minIdx]) {
                 minIdx = j;
@@ -166,38 +197,62 @@ async function selectionSort(array) {
         }
         sorted.push(i);
     }
-    sorted.push(n - 1);
-    updateVisualization(array, [], sorted);
+    if (isSorting) {
+        sorted.push(n - 1);
+        updateVisualization(array, [], sorted);
+    }
 }
 
 async function generateAndSort() {
     const size = parseInt(document.getElementById('arraySize').value);
+    const maxNum = parseInt(document.getElementById('maxNumber').value);
     const algorithm = document.getElementById('algorithm').value;
     
     if (size < 5 || size > 100) {
         alert('Please enter a size between 5 and 100');
         return;
     }
+    if (maxNum < 10 || maxNum > 10000) {
+        alert('Please enter a maximum number between 10 and 10000');
+        return;
+    }
+
+    isSorting = true;
+    startTime = Date.now();
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('cancelBtn').style.display = 'inline-block';
+    document.getElementById('timeInfo').textContent = 'Starting...';
 
     array = generateArray(size);
     updateVisualization(array);
 
-    switch (algorithm) {
-        case 'bubble':
-            await bubbleSort(array);
-            break;
-        case 'insertion':
-            await insertionSort(array);
-            break;
-        case 'merge':
-            await mergeSort(array);
-            break;
-        case 'quick':
-            await quickSort(array);
-            break;
-        case 'selection':
-            await selectionSort(array);
-            break;
+    try {
+        switch (algorithm) {
+            case 'bubble':
+                await bubbleSort(array);
+                break;
+            case 'insertion':
+                await insertionSort(array);
+                break;
+            case 'merge':
+                await mergeSort(array);
+                break;
+            case 'quick':
+                await quickSort(array);
+                break;
+            case 'selection':
+                await selectionSort(array);
+                break;
+        }
+        if (isSorting) {
+            updateTimeInfo('completed');
+        }
+    } catch (error) {
+        console.error('Sorting error:', error);
+    } finally {
+        isSorting = false;
+        document.getElementById('startBtn').style.display = 'inline-block';
+        document.getElementById('cancelBtn').style.display = 'none';
     }
 }
 
