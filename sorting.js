@@ -372,6 +372,107 @@ async function timSort(array) {
     }
 }
 
+async function heapSort(array) {
+    const n = array.length;
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+        await heapify(array, n, i);
+    }
+    for (let i = n - 1; i > 0; i--) {
+        [array[0], array[i]] = [array[i], array[0]];
+        await updateVisualization(array, [], [i]);
+        await heapify(array, i, 0);
+    }
+    await updateVisualization(array, [], []);
+}
+
+async function heapify(array, n, i) {
+    let largest = i;
+    const left = 2 * i + 1;
+    const right = 2 * i + 2;
+    if (left < n && array[left] > array[largest]) {
+        largest = left;
+    }
+    if (right < n && array[right] > array[largest]) {
+        largest = right;
+    }
+    if (largest !== i) {
+        [array[i], array[largest]] = [array[largest], array[i]];
+        await updateVisualization(array, [i, largest], []);
+        await heapify(array, n, largest);
+    }
+}
+
+async function countingSort(array) {
+    const max = Math.max(...array);
+    const count = new Array(max + 1).fill(0);
+    const output = new Array(array.length);
+    for (let i = 0; i < array.length; i++) {
+        count[array[i]]++;
+    }
+    for (let i = 1; i <= max; i++) {
+        count[i] += count[i - 1];
+    }
+    for (let i = array.length - 1; i >= 0; i--) {
+        output[count[array[i]] - 1] = array[i];
+        count[array[i]]--;
+    }
+    for (let i = 0; i < array.length; i++) {
+        array[i] = output[i];
+        await updateVisualization(array, [], [i]);
+    }
+    await updateVisualization(array, [], []);
+}
+
+async function bucketSort(array) {
+    const n = array.length;
+    const buckets = Array.from({ length: n }, () => []);
+    const max = Math.max(...array);
+    for (let i = 0; i < n; i++) {
+        const bucketIndex = Math.floor((array[i] / max) * (n - 1));
+        buckets[bucketIndex].push(array[i]);
+    }
+    for (let i = 0; i < n; i++) {
+        buckets[i].sort((a, b) => a - b);
+    }
+    let index = 0;
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < buckets[i].length; j++) {
+            array[index++] = buckets[i][j];
+            await updateVisualization(array, [], [index - 1]);
+        }
+    }
+    await updateVisualization(array, [], []);
+}
+
+async function radixSort(array) {
+    const max = Math.max(...array);
+    for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
+        await countingSortForRadix(array, exp);
+    }
+    await updateVisualization(array, [], []);
+}
+
+async function countingSortForRadix(array, exp) {
+    const n = array.length;
+    const output = new Array(n);
+    const count = new Array(10).fill(0);
+    for (let i = 0; i < n; i++) {
+        count[Math.floor(array[i] / exp) % 10]++;
+    }
+    for (let i = 1; i < 10; i++) {
+        count[i] += count[i - 1];
+    }
+    for (let i = n - 1; i >= 0; i--) {
+        const digit = Math.floor(array[i] / exp) % 10;
+        output[count[digit] - 1] = array[i];
+        count[digit]--;
+    }
+    for (let i = 0; i < n; i++) {
+        array[i] = output[i];
+        await updateVisualization(array, [], [i]);
+    }
+}
+
 async function generateAndSort() {
     const size = parseInt(document.getElementById('arraySize').value);
     const maxNum = parseInt(document.getElementById('maxNumber').value);
@@ -407,6 +508,9 @@ async function generateAndSort() {
 
     try {
         switch (algorithm) {
+            case 'bogo':
+                await bogoSort(array);
+                break;
             case 'bubble':
                 await bubbleSort(array);
                 break;
@@ -422,15 +526,26 @@ async function generateAndSort() {
             case 'selection':
                 await selectionSort(array);
                 break;
-            case 'bogo':
-                await bogoSort(array);
-                break;
             case 'shell':
                 await shellSort(array);
                 break;
             case 'tim':
                 await timSort(array);
                 break;
+            case 'heap':
+                await heapSort(array);
+                break;
+            case 'counting':
+                await countingSort(array);
+                break;
+            case 'bucket':
+                await bucketSort(array);
+                break;
+            case 'radix':
+                await radixSort(array);
+                break;
+            default:
+                await bogoSort(array);
         }
         if (isSorting) {
             updateTimeInfo('completed');
@@ -447,3 +562,5 @@ async function generateAndSort() {
 
 // Initial visualization
 generateAndSort();
+
+// Heap Sort
