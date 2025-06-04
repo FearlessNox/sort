@@ -1,31 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorting Algorithms Visualization</title>
+    <title>Visualizador de Algoritmos de Ordenação</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 80%;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f0f2f5;
         }
-        .controls {
+
+        .container {
             background-color: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
         }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
         select, input, button {
-            padding: 8px 12px;
-            margin: 5px;
+            padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 16px;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -33,9 +41,16 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+
         button:hover {
             background-color: #45a049;
         }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
         #visualization {
             background-color: white;
             padding: 20px;
@@ -46,53 +61,88 @@
             justify-content: space-between;
             align-items: flex-end;
             width: 100%;
+            margin-bottom: 20px;
         }
+
         .array-bar {
             display: inline-block;
-            margin: 0 2px 0 0;
+            margin: 0 2px;
             background-color: #3498db;
-            transition: height 0.3s;
+            transition: height 0.3s, background-color 0.3s;
         }
+
         .comparing {
             background-color: #e74c3c;
         }
+
         .sorted {
             background-color: #2ecc71;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-control label {
+            white-space: nowrap;
+        }
+
+        .speed-control input {
+            width: 150px;
         }
     </style>
 </head>
 <body>
-    <audio autoplay loop>
-        <source src="Different Heaven, EH!DE - My Heart [NCS Release].mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-    <div class="controls">
-        <select id="algorithm">
-            <option value="bogo" selected>Bogo Sort</option>
-            <option value="bubble">Bubble Sort</option>
-            <option value="insertion">Insertion Sort</option>
-            <option value="merge">Merge Sort</option>
-            <option value="quick">Quick Sort</option>
-            <option value="selection">Selection Sort</option>
-            <option value="shell">Shell Sort</option>
-            <option value="tim">Tim Sort</option>
-            <option value="heap">Heap Sort</option>
-            <option value="counting">Counting Sort</option>
-            <option value="bucket">Bucket Sort</option>
-            <option value="radix">Radix Sort</option>
-        </select>
-        <input type="number" id="arraySize" placeholder="Array Size" min="5" max="1000" value="30">
-        <input type="number" id="maxNumber" placeholder="Max Number" min="1" max="10000" value="20">
-        <button id="startBtn" onclick="generateAndSort()">Generate & Sort</button>
-        <button id="cancelBtn" onclick="cancelSort()" style="background-color: #e74c3c; display: none;">Cancel Sort</button>
-        <div id="timeInfo" style="margin-top: 10px; font-size: 14px;"></div>
-    </div>
-    <div id="visualization"></div>
-    <div id="arrayInfo" style="margin-top: 20px; text-align: center; font-family: monospace;">
-        <div id="originalArray" style="margin-bottom: 10px;"></div>
-        <div id="sortedArray"></div>
+    <div class="container">
+        <h1>Visualizador de Algoritmos de Ordenação</h1>
+        
+        <div class="controls">
+            <select id="algorithm">
+                <option value="bogo">Bogo Sort</option>
+                <option value="bubble">Bubble Sort</option>
+                <option value="insertion">Insertion Sort</option>
+                <option value="merge">Merge Sort</option>
+                <option value="quick">Quick Sort</option>
+                <option value="selection">Selection Sort</option>
+                <option value="shell">Shell Sort</option>
+                <option value="tim">Tim Sort</option>
+                <option value="heap">Heap Sort</option>
+                <option value="counting">Counting Sort</option>
+                <option value="bucket">Bucket Sort</option>
+                <option value="radix">Radix Sort</option>
+            </select>
+
+            <input type="number" id="arraySize" placeholder="Tamanho do Array" min="5" max="100" value="30">
+            <input type="number" id="maxNumber" placeholder="Número Máximo" min="10" max="1000" value="100">
+
+            <div class="speed-control">
+                <label for="speed">Velocidade:</label>
+                <input type="range" id="speed" min="1" max="100" value="50">
+            </div>
+
+            <button id="startBtn" onclick="generateAndSort()">Iniciar Ordenação</button>
+            <button id="cancelBtn" onclick="cancelSort()" style="background-color: #e74c3c; display: none;">Cancelar</button>
+        </div>
+
+        <div id="visualization"></div>
+
+        <div class="info">
+            <div id="timeInfo">Tempo: 0.00s</div>
+            <div id="comparisons">Comparações: 0</div>
+            <div id="swaps">Trocas: 0</div>
+        </div>
     </div>
 
     <script src="sorting.js"></script>
 </body>
-</html>
+</html> 
